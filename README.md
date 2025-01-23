@@ -40,7 +40,7 @@ Built using:
 
 Follow these steps to install and run the repository locally:
 
-- ``
+- `git clone git@github.com:StateLibraryVictoria/maniiifestor-browser-extension.git`
 
 ### Running locally
 
