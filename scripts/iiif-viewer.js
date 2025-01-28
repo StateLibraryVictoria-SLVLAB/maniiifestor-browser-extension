@@ -5,25 +5,91 @@ const readDataset = async (fileName) => {
   return data;
 };
 
-const iiifViewer = async (iePid) => {
-  const iiifManifestUrl = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
-  const response = await fetch(iiifManifestUrl);
-  const iiifManifest = await response.json();
+const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  let tileSource;
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
 
-  if (iiifManifest) {
-    const imageId =
-      iiifManifest["sequences"][0]["canvases"][0]["images"][0]["resource"][
-        "service"
-      ]["@id"];
-    tileSource = `${imageId}/info.json`;
-  } else {
-    console.log("Error");
-    tileSource =
-      "https://rosetta.slv.vic.gov.au:2083/iiif/2/IE1258179:FL20898197.jpg/info.json";
+const getManifest = async (url) => {
+  const response = await fetchWithTimeout(url, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
 
+  return await response.json();
+};
+
+const validateManifest = (manifest) => {
+  const imageId =
+    manifest?.sequences?.[0]?.canvases?.[0]?.images?.[0]?.resource?.service?.[
+      "@id"
+    ];
+  if (!imageId) {
+    throw new Error("Invalid manifest structure");
+  }
+  return imageId;
+};
+
+const handleError = (error) => {
+  console.error("Error loading IIIF manifest:", error);
+
+  if (error.name === "AbortError") {
+    return "Request timed out. Please try again.";
+  }
+
+  if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+    return "CORS error or network issue. Using fallback image.";
+  }
+
+  if (error.message.includes("HTTP error! status: 502")) {
+    return "Server temporarily unavailable. Using fallback image.";
+  }
+
+  return "An error occurred while loading the image.";
+};
+
+const iiifViewer = async (iePid, fallbackTileSource) => {
+  const defaultFallbackTileSource =
+    "https://rosetta.slv.vic.gov.au:2083/iiif/2/IE1258179:FL20898197.jpg/info.json";
+  const iiifManifestUrl = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
+
+  try {
+    // Fetch and validate manifest
+    const manifest = await getManifest(iiifManifestUrl);
+    const imageId = validateManifest(manifest);
+    const tileSource = `${imageId}/info.json`;
+
+    // Initialise viewer with fetched manifest
+    return await initialiseViewer(tileSource);
+  } catch (error) {
+    const errorMessage = handleError(error);
+
+    if (typeof window !== "undefined") {
+      console.log(errorMessage);
+    }
+
+    //TODO: implement a fallback option if possible
+  }
+};
+
+const initialiseViewer = (tileSource) => {
   return OpenSeadragon({
     id: "openseadragoncontainer",
     prefixUrl:
@@ -31,6 +97,11 @@ const iiifViewer = async (iePid) => {
     showFullPageControl: true,
     showNavigationControl: false,
     tileSources: [tileSource],
+    crossOriginPolicy: "Anonymous",
+    loadTilesWithAjax: true,
+    ajaxHeaders: {
+      Accept: "image/jpeg",
+    },
   });
 };
 
@@ -49,6 +120,7 @@ const viewer = async () => {
     const palette5RGB = `${palette5[0]}, ${palette5[1]}, ${palette5[2]}`;
 
     const viewer = await iiifViewer(iePid);
+
     const descMetadata = document.getElementById("desc-metadata");
     descMetadata.innerHTML = `<h2> ${title} </h2>`;
 
@@ -62,7 +134,8 @@ const viewer = async () => {
 
     const osdContainer = document.getElementById("container");
 
-    osdContainer.style.backgroundImage = `linear-gradient(to bottom right, rgb(${palette1RGB}), rgb(${palette5RGB}))`;
+    osdContainer.style.setProperty("--c1", `rgb(${palette1RGB})`);
+    osdContainer.style.setProperty("--c2", `rgb(${palette5RGB})`);
 
     return viewer;
   } catch (error) {
