@@ -89,7 +89,7 @@ const iiifViewer = async (iePid, fallbackTileSource) => {
   }
 };
 
-const initialiseViewer = (tileSource) => {
+const initialiseViewer = async (tileSource) => {
   return OpenSeadragon({
     id: "openseadragoncontainer",
     prefixUrl:
@@ -102,6 +102,9 @@ const initialiseViewer = (tileSource) => {
     ajaxHeaders: {
       Accept: "image/jpeg",
     },
+    preserveImageSizeOnResize: true,
+    minZoomImageRatio: 0.8,
+    defaultZoomLevel: 0.6,
   });
 };
 
