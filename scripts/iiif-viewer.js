@@ -37,6 +37,8 @@ const getManifest = async (url) => {
 };
 
 const validateManifest = (manifest) => {
+  console.log(manifest);
+
   const imageId =
     manifest?.sequences?.[0]?.canvases?.[0]?.images?.[0]?.resource?.service?.[
       "@id"
@@ -65,16 +67,9 @@ const handleError = (error) => {
   return "An error occurred while loading the image.";
 };
 
-const iiifViewer = async (iePid, fallbackTileSource) => {
-  const defaultFallbackTileSource =
-    "https://rosetta.slv.vic.gov.au:2083/iiif/2/IE1258179:FL20898197.jpg/info.json";
-  const iiifManifestUrl = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
-
+const iiifViewer = async (manifest) => {
   try {
-    // Fetch and validate manifest
-    const manifest = await getManifest(iiifManifestUrl);
-    const imageId = validateManifest(manifest);
-    const tileSource = `${imageId}/info.json`;
+    const tileSource = `${manifest}/info.json`;
 
     // Initialise viewer with fetched manifest
     return await initialiseViewer(tileSource);
@@ -108,37 +103,64 @@ const initialiseViewer = async (tileSource) => {
   });
 };
 
+const fetchRandomImageManifest = async () => {
+  const response = await fetchWithTimeout(
+    "https://86l3n9wbnc.execute-api.ap-southeast-2.amazonaws.com/Prod/cfip/random/iiif",
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  return data?.record;
+};
+
 const viewer = async () => {
   try {
-    const dataset = await readDataset("./data/dataset.json");
+    const imageRecord = await fetchRandomImageManifest();
 
-    const randomIndex = Math.floor(Math.random() * dataset.length);
-    const randomEntry = dataset[randomIndex];
+    const iePid = imageRecord?.iePid;
+    const title = imageRecord?.title;
 
-    const iePid = randomEntry["IE PID"];
-    const title = randomEntry["Title (DC)"];
-    const palette1 = randomEntry["palette_1"];
-    const palette1RGB = `${palette1[0]}, ${palette1[1]}, ${palette1[2]}`;
-    const palette5 = randomEntry["palette_5"];
-    const palette5RGB = `${palette5[0]}, ${palette5[1]}, ${palette5[2]}`;
+    const palette1RGB = imageRecord?.["palette_1"];
+    const palette5RGB = imageRecord?.["palette_5"];
 
-    const viewer = await iiifViewer(iePid);
+    const viewer = await iiifViewer(imageRecord?.manifest);
 
     const descMetadata = document.getElementById("desc-metadata");
-    descMetadata.innerHTML = `<h2> ${title} </h2>`;
 
-    const iiifManifestLink = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
-    const imageLink = `https://viewer.slv.vic.gov.au/?entity=${iePid}&mode=browse`;
+    if (descMetadata) {
+      descMetadata.innerHTML = `<h2> ${title} </h2>`;
+    }
 
-    descMetadata.innerHTML += `<div id="links">
-          <a href="${imageLink}" target="_blank" rel="noopener noreferrer">SLV image viewer</a>
-          <a href="${iiifManifestLink}" target="_blank" rel="noopener noreferrer">IIIF manifest</a>
-        </div>`;
+    const descMetadataV = document.getElementById("desc-metadata-v");
+    if (descMetadataV) {
+      descMetadataV.innerHTML = `<h2> ${title} </h2>`;
+    }
+
+    const linkCat = document.getElementById("link-cat");
+
+    if (linkCat) {
+      linkCat.href = `https://viewer.slv.vic.gov.au/?entity=${iePid}&mode=browse`;
+    }
+
+    const linkManifest = document.getElementById("link-manifest");
+
+    if (linkManifest) {
+      linkManifest.href = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
+    }
 
     const osdContainer = document.getElementById("container");
 
     osdContainer.style.setProperty("--c1", `rgb(${palette1RGB})`);
     osdContainer.style.setProperty("--c2", `rgb(${palette5RGB})`);
+
+    // Trigger the window resize event to resize the title to fit
+    window.dispatchEvent(new Event("resize"));
 
     return viewer;
   } catch (error) {
