@@ -100,6 +100,8 @@ const initialiseViewer = async (tileSource) => {
     preserveImageSizeOnResize: true,
     minZoomImageRatio: 0.8,
     defaultZoomLevel: 0.6,
+    springStiffness: 20,
+    animationTime: 0.75,
   });
 };
 
