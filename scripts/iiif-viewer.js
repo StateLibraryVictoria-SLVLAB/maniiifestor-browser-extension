@@ -164,6 +164,14 @@ const viewer = async () => {
     // Trigger the window resize event to resize the title to fit
     window.dispatchEvent(new Event("resize"));
 
+    viewer.addHandler("canvas-drag", () => {
+      document.body.classList.add("dragging");
+    });
+
+    viewer.addHandler("canvas-drag-end", () => {
+      document.body.classList.remove("dragging");
+    });
+
     return viewer;
   } catch (error) {
     console.log(`An error occurred: ${error}`);
