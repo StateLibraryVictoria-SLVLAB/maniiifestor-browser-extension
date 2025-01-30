@@ -5,25 +5,86 @@ const readDataset = async (fileName) => {
   return data;
 };
 
-const iiifViewer = async (iePid) => {
-  const iiifManifestUrl = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
-  const response = await fetch(iiifManifestUrl);
-  const iiifManifest = await response.json();
+const fetchWithTimeout = async (url, options = {}, timeout = 10000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-  let tileSource;
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
 
-  if (iiifManifest) {
-    const imageId =
-      iiifManifest["sequences"][0]["canvases"][0]["images"][0]["resource"][
-        "service"
-      ]["@id"];
-    tileSource = `${imageId}/info.json`;
-  } else {
-    console.log("Error");
-    tileSource =
-      "https://rosetta.slv.vic.gov.au:2083/iiif/2/IE1258179:FL20898197.jpg/info.json";
+const getManifest = async (url) => {
+  const response = await fetchWithTimeout(url, {
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
 
+  return await response.json();
+};
+
+const validateManifest = (manifest) => {
+  console.log(manifest);
+
+  const imageId =
+    manifest?.sequences?.[0]?.canvases?.[0]?.images?.[0]?.resource?.service?.[
+      "@id"
+    ];
+  if (!imageId) {
+    throw new Error("Invalid manifest structure");
+  }
+  return imageId;
+};
+
+const handleError = (error) => {
+  console.error("Error loading IIIF manifest:", error);
+
+  if (error.name === "AbortError") {
+    return "Request timed out. Please try again.";
+  }
+
+  if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+    return "CORS error or network issue. Using fallback image.";
+  }
+
+  if (error.message.includes("HTTP error! status: 502")) {
+    return "Server temporarily unavailable. Using fallback image.";
+  }
+
+  return "An error occurred while loading the image.";
+};
+
+const iiifViewer = async (manifest) => {
+  try {
+    const tileSource = `${manifest}/info.json`;
+
+    // Initialise viewer with fetched manifest
+    return await initialiseViewer(tileSource);
+  } catch (error) {
+    const errorMessage = handleError(error);
+
+    if (typeof window !== "undefined") {
+      console.log(errorMessage);
+    }
+
+    //TODO: implement a fallback option if possible
+  }
+};
+
+const initialiseViewer = async (tileSource) => {
   return OpenSeadragon({
     id: "openseadragoncontainer",
     prefixUrl:
@@ -31,38 +92,85 @@ const iiifViewer = async (iePid) => {
     showFullPageControl: true,
     showNavigationControl: false,
     tileSources: [tileSource],
+    crossOriginPolicy: "Anonymous",
+    loadTilesWithAjax: true,
+    ajaxHeaders: {
+      Accept: "image/jpeg",
+    },
+    preserveImageSizeOnResize: true,
+    minZoomImageRatio: 0.8,
+    defaultZoomLevel: 0.6,
+    springStiffness: 20,
+    animationTime: 0.75,
   });
+};
+
+const fetchRandomImageManifest = async () => {
+  const response = await fetchWithTimeout(
+    "https://86l3n9wbnc.execute-api.ap-southeast-2.amazonaws.com/Prod/cfip/random/iiif",
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  const data = await response.json();
+
+  return data?.record;
 };
 
 const viewer = async () => {
   try {
-    const dataset = await readDataset("./data/dataset.json");
+    const imageRecord = await fetchRandomImageManifest();
 
-    const randomIndex = Math.floor(Math.random() * dataset.length);
-    const randomEntry = dataset[randomIndex];
+    const iePid = imageRecord?.iePid;
+    const title = imageRecord?.title;
 
-    const iePid = randomEntry["IE PID"];
-    const title = randomEntry["Title (DC)"];
-    const palette1 = randomEntry["palette_1"];
-    const palette1RGB = `${palette1[0]}, ${palette1[1]}, ${palette1[2]}`;
-    const palette5 = randomEntry["palette_5"];
-    const palette5RGB = `${palette5[0]}, ${palette5[1]}, ${palette5[2]}`;
+    const palette1RGB = imageRecord?.["palette_1"];
+    const palette5RGB = imageRecord?.["palette_5"];
 
-    const viewer = await iiifViewer(iePid);
+    const viewer = await iiifViewer(imageRecord?.manifest);
+
     const descMetadata = document.getElementById("desc-metadata");
-    descMetadata.innerHTML = `<h2> ${title} </h2>`;
 
-    const iiifManifestLink = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
-    const imageLink = `https://viewer.slv.vic.gov.au/?entity=${iePid}&mode=browse`;
+    if (descMetadata) {
+      descMetadata.innerHTML = `<h2> ${title} </h2>`;
+    }
 
-    descMetadata.innerHTML += `<div id="links">
-          <a href="${imageLink}" target="_blank" rel="noopener noreferrer">SLV image viewer</a>
-          <a href="${iiifManifestLink}" target="_blank" rel="noopener noreferrer">IIIF manifest</a>
-        </div>`;
+    const descMetadataV = document.getElementById("desc-metadata-v");
+    if (descMetadataV) {
+      descMetadataV.innerHTML = `<h2> ${title} </h2>`;
+    }
+
+    const linkCat = document.getElementById("link-cat");
+
+    if (linkCat) {
+      linkCat.href = `https://viewer.slv.vic.gov.au/?entity=${iePid}&mode=browse`;
+    }
+
+    const linkManifest = document.getElementById("link-manifest");
+
+    if (linkManifest) {
+      linkManifest.href = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
+    }
 
     const osdContainer = document.getElementById("container");
 
-    osdContainer.style.backgroundImage = `linear-gradient(to bottom right, rgb(${palette1RGB}), rgb(${palette5RGB}))`;
+    osdContainer.style.setProperty("--c1", `rgb(${palette1RGB})`);
+    osdContainer.style.setProperty("--c2", `rgb(${palette5RGB})`);
+
+    // Trigger the window resize event to resize the title to fit
+    window.dispatchEvent(new Event("resize"));
+
+    viewer.addHandler("canvas-drag", () => {
+      document.body.classList.add("dragging");
+    });
+
+    viewer.addHandler("canvas-drag-end", () => {
+      document.body.classList.remove("dragging");
+    });
 
     return viewer;
   } catch (error) {
