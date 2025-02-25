@@ -49,7 +49,7 @@ const validateManifest = (manifest) => {
   return imageId;
 };
 
-const handleError = (error) => {
+const handleViewerError = (error) => {
   console.error("Error loading IIIF manifest:", error);
 
   if (error.name === "AbortError") {
@@ -74,7 +74,7 @@ const iiifViewer = async (manifest) => {
     // Initialise viewer with fetched manifest
     return await initialiseViewer(tileSource);
   } catch (error) {
-    const errorMessage = handleError(error);
+    const errorMessage = handleViewerError(error);
 
     if (typeof window !== "undefined") {
       console.log(errorMessage);
@@ -113,7 +113,7 @@ const fetchRandomImageManifest = async () => {
       headers: {
         Accept: "application/json",
       },
-    },
+    }
   );
 
   const data = await response.json();

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.0",
+  "version": "1.1",
   "name": "SLV LAB new tab ManIIIFestor",
   "description": "Add IIIF-powered images from the State Library Victoria's pool a copyright-free images to your newly opened tab.",
   "icons": {
