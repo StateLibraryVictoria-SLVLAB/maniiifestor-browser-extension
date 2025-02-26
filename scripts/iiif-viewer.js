@@ -135,13 +135,18 @@ const viewer = async () => {
 
     const descMetadata = document.getElementById("desc-metadata");
 
+    let titleH2 = document.createElement("h2");
+    titleH2.innerText = title;
+
     if (descMetadata) {
-      descMetadata.innerHTML = `<h2> ${title} </h2>`;
+      descMetadata.append(titleH2);
     }
 
     const descMetadataV = document.getElementById("desc-metadata-v");
     if (descMetadataV) {
-      descMetadataV.innerHTML = `<h2> ${title} </h2>`;
+      let titleH2 = document.createElement("h2");
+      titleH2.innerText = title;
+      descMetadataV.append(titleH2);
     }
 
     const linkCat = document.getElementById("link-cat");
