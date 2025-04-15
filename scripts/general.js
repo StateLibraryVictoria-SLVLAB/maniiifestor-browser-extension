@@ -87,6 +87,16 @@ const setupListeners = () => {
     );
   }
 
+  const showWarningEle = document.getElementById(
+    "harmful-content-warning-button"
+  );
+
+  if (showWarningEle) {
+    showWarningEle.addEventListener("click", () =>
+      handleContentWarningDisplay(true)
+    );
+  }
+
   window.addEventListener("resize", handleWindowResize);
 };
 
