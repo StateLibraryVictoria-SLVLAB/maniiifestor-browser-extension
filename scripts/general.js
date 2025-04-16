@@ -1,13 +1,21 @@
-const MAX_FONT_SIZE = 40;
-const MIN_FONT_SIZE = 24;
+import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "./constants.js";
+import PreferenceManager from "./PreferenceManager.js";
+
+const preferenceManager = new PreferenceManager();
 let currentFontSize = MAX_FONT_SIZE;
 
-const toggleInfoPane = () => {
+const toggleInfoPane = (instant = false) => {
   const body = document.body;
-
   if (!body) return;
 
+  if (instant) {
+    body.classList.add("no-pane-anim");
+  } else {
+    body.classList.remove("no-pane-anim");
+  }
+
   const isOpen = body.classList.contains("open-pane");
+  preferenceManager.setPreference("paneOpen", !isOpen);
 
   if (isOpen) {
     body.classList.remove("open-pane");
@@ -47,7 +55,7 @@ const handleWindowResize = () => {
         vEl.style.setProperty("--title-font-size", `${currentFontSize}px`);
         vEl.style.setProperty(
           "--title-line-height",
-          `${currentFontSize * 1.5}px`,
+          `${currentFontSize * 1.5}px`
         );
         under = vEl.offsetHeight > pane.offsetHeight;
       }
@@ -55,11 +63,11 @@ const handleWindowResize = () => {
 
     document.documentElement.style.setProperty(
       "--title-font-size",
-      `${currentFontSize}px`,
+      `${currentFontSize}px`
     );
     document.documentElement.style.setProperty(
       "--title-line-height",
-      `${currentFontSize * 1.5}px`,
+      `${currentFontSize * 1.5}px`
     );
   }
 };
@@ -68,10 +76,49 @@ const setupListeners = () => {
   const paneToggleEle = document.getElementById("pane-toggle");
 
   if (paneToggleEle) {
-    paneToggleEle.addEventListener("click", toggleInfoPane);
+    paneToggleEle.addEventListener("click", () => toggleInfoPane(false));
+  }
+
+  const dismissWarningEle = document.getElementById("warning-dismiss-button");
+
+  if (dismissWarningEle) {
+    dismissWarningEle.addEventListener("click", () =>
+      handleContentWarningDisplay()
+    );
+  }
+
+  const showWarningEle = document.getElementById(
+    "harmful-content-warning-button"
+  );
+
+  if (showWarningEle) {
+    showWarningEle.addEventListener("click", () =>
+      handleContentWarningDisplay(true)
+    );
   }
 
   window.addEventListener("resize", handleWindowResize);
 };
 
+const handleContentWarningDisplay = (show = false) => {
+  if (show) {
+    document.body.classList.add("show-warning");
+  } else {
+    document.body.classList.remove("show-warning");
+    preferenceManager.setPreference("hasSeenWarning", true);
+  }
+};
+
+const handlePreferences = () => {
+  const hasSeenWarning = preferenceManager.getPreference(
+    "hasSeenWarning",
+    false
+  );
+  if (!hasSeenWarning) handleContentWarningDisplay(true);
+
+  const paneOpen = preferenceManager.getPreference("paneOpen", false);
+  if (paneOpen) toggleInfoPane(true);
+};
+
 setupListeners();
+handlePreferences();
