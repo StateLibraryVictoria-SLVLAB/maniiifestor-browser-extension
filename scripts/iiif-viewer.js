@@ -85,7 +85,7 @@ const iiifViewer = async (manifest) => {
 };
 
 const initialiseViewer = async (tileSource) => {
-  return OpenSeadragon({
+  const viewer = OpenSeadragon({
     id: "openseadragoncontainer",
     prefixUrl:
       "https://cdnjs.cloudflare.com/ajax/libs/openseadragon/4.1.1/images",
@@ -98,11 +98,21 @@ const initialiseViewer = async (tileSource) => {
       Accept: "image/jpeg",
     },
     preserveImageSizeOnResize: true,
-    minZoomImageRatio: 0.8,
-    defaultZoomLevel: 0.6,
+    minZoomImageRatio: 0.5,
     springStiffness: 20,
     animationTime: 0.75,
   });
+
+  viewer.addHandler("open", function () {
+    const currentZoom = viewer.viewport.getZoom();
+
+    // wait for next tick to zoom image
+    setTimeout(() => {
+      viewer.viewport.zoomTo(currentZoom * 0.65, null, true);
+    }, 1);
+  });
+
+  return viewer;
 };
 
 const fetchRandomImageManifest = async () => {
@@ -113,7 +123,7 @@ const fetchRandomImageManifest = async () => {
       headers: {
         Accept: "application/json",
       },
-    },
+    }
   );
 
   const data = await response.json();
@@ -127,6 +137,7 @@ const viewer = async () => {
 
     const iePid = imageRecord?.iePid;
     const title = imageRecord?.title;
+    const metadata = imageRecord?.metadata;
 
     const palette1RGB = imageRecord?.["palette_1"];
     const palette5RGB = imageRecord?.["palette_5"];
@@ -142,6 +153,17 @@ const viewer = async () => {
     const descMetadataV = document.getElementById("desc-metadata-v");
     if (descMetadataV) {
       descMetadataV.innerHTML = `<h2> ${title} </h2>`;
+    }
+
+    const titleMetadata = document.getElementById("title-metadata");
+
+    if (titleMetadata) {
+      titleMetadata.innerHTML = title;
+    }
+
+    const creatorMetadata = document.getElementById("creator-metadata");
+    if (creatorMetadata && metadata?.[0]?.value) {
+      creatorMetadata.innerText = `${metadata?.[0]?.value}`;
     }
 
     const linkCat = document.getElementById("link-cat");
