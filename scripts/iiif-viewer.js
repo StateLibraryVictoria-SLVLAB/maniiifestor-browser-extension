@@ -108,7 +108,19 @@ const initialiseViewer = async (tileSource) => {
 
     // wait for next tick to zoom image
     setTimeout(() => {
-      viewer.viewport.zoomTo(currentZoom * 0.65, null, true);
+      viewer.viewport.zoomTo(currentZoom * 0.8, null, true);
+
+      // Pan the image up a tiny bit
+      const currentCenter = viewer.viewport.getCenter();
+      const pixelDelta = new OpenSeadragon.Point(0, 45);
+      const viewportDelta = viewer.viewport.deltaPointsFromPixels(pixelDelta);
+      viewer.viewport.panTo(
+        new OpenSeadragon.Point(
+          currentCenter.x,
+          currentCenter.y + viewportDelta.y
+        ),
+        true
+      );
     }, 1);
   });
 
