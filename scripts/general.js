@@ -25,7 +25,7 @@ const toggleInfoPane = (instant = false) => {
 };
 
 const resetFontSize = () => {
-  const pane = document.getElementById("info-pane-upper");
+  const pane = document.getElementById("info-pane-title");
   const vEl = document.getElementById("desc-metadata-v");
 
   if (pane && vEl) {
@@ -37,7 +37,7 @@ const resetFontSize = () => {
 };
 
 const handleWindowResize = () => {
-  const pane = document.getElementById("info-pane-upper");
+  const pane = document.getElementById("info-pane-title");
   const vEl = document.getElementById("desc-metadata-v");
 
   if (pane && vEl) {

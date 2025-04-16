@@ -125,6 +125,14 @@ body {
   flex: 1 1 auto;
   overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#info-pane-title {
+  flex: 0 1 auto;
+  overflow: hidden;
+  position: relative;
 }
 
 #info-pane-lower {
@@ -182,6 +190,7 @@ h2 {
   place-content: space-between;
   padding-top: 0.5rem;
   gap: 0.5rem;
+  flex: 0 0 auto;
 }
 
 #creator-metadata {
