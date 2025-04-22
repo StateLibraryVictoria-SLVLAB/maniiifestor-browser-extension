@@ -4,9 +4,9 @@
   "name": "SLV LAB new tab ManIIIFestor",
   "description": "Add IIIF-powered images from State Library Victoria's pool a copyright-free images to your newly opened tab.",
   "icons": {
-    "16": "./assets/images/state-library-shelf-icon-square-16.png",
-    "48": "./assets/images/state-library-shelf-icon-square-48.png",
-    "128": "./assets/images/state-library-shelf-icon-square-128.png"
+    "16": "assets/images/state-library-shelf-icon-square-16.png",
+    "48": "assets/images/state-library-shelf-icon-square-48.png",
+    "128": "assets/images/state-library-shelf-icon-square-128.png"
   },
   "chrome_url_overrides": {
     "newtab": "slv-iiif-image-tab.html"
