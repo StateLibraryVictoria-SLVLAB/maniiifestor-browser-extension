@@ -1,8 +1,10 @@
-# IIIF-powered browser extension
+# ManIIIFestor: a IIIF-powered browser extension
 
 ## Project description
 
-A brief and descriptive introduction to the project/product contained in the repository.
+ManIIIFestor is an extension or add-on that can be added to either the Chrome or Firefox web browsers. It adds an image selected at random from the Library's copyright-free image pool. it does this by leveraging the IIIF image API.
+
+The project was originally developed as part of a collaborative hack day between the Library's Collection, Curation and Engagement department and Code Club.
 
 ### Tech stack
 
@@ -49,10 +51,12 @@ The HTML file can previewed directly through any browser.
 If you wish to test the browser-specific features you should follow the instructions here:
 
 - Chrome [https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
+- Firefox [https://addons.mozilla.org/en-US/developers/addon/validate](https://addons.mozilla.org/en-US/developers/addon/validate)
 
 ### Deployment
 
 - Chrome: follow the instructions here [https://developer.chrome.com/docs/webstore/register](https://developer.chrome.com/docs/webstore/register)
+- Firefox: instructions here [https://extensionworkshop.com/documentation/publish/](https://extensionworkshop.com/documentation/publish/)
 
 ### Commit style
 
