@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "1.2.2",
+  "version": "1.2.3",
   "name": "ManIIIFestor",
   "description": "Add IIIF-powered images from State Library Victoria's copyright-free image pool to your browser's newly opened tab.",
   "icons": {
