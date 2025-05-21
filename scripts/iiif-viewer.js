@@ -107,6 +107,10 @@ const initialiseViewer = async (tileSource) => {
   viewer.addHandler("open", function () {
     const currentZoom = viewer.viewport.getZoom();
 
+    setTimeout(() => {
+      document.body.classList.add("loaded");
+    }, 2000);
+
     // wait for next tick to zoom image
     setTimeout(() => {
       viewer.viewport.zoomTo(currentZoom * 0.8, null, true);
