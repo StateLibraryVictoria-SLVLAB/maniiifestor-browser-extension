@@ -94,6 +94,8 @@ const initialiseViewer = async (tileSource) => {
     tileSources: [tileSource],
     crossOriginPolicy: "Anonymous",
     loadTilesWithAjax: true,
+    preload: true,
+    opacity: 1,
     ajaxHeaders: {
       Accept: "image/jpeg",
     },
@@ -101,6 +103,7 @@ const initialiseViewer = async (tileSource) => {
     minZoomImageRatio: 0.5,
     springStiffness: 20,
     animationTime: 0.75,
+    placeholderFillStyle: "#cccccc",
   });
 
   viewer.addHandler("open", function () {
@@ -122,6 +125,41 @@ const initialiseViewer = async (tileSource) => {
         true
       );
     }, 1);
+  });
+
+  let isFullyLoaded = false;
+
+  // Create a promise to know when loading is complete
+  const fullyLoadedPromise = new Promise((resolve) => {
+    // Listen for the open event first
+    viewer.addHandler("open", function () {
+      const tiledImage = viewer.world.getItemAt(0);
+      if (!tiledImage) {
+        return;
+      }
+
+      // Initial check that the image isn't already fully loaded
+      if (tiledImage.getFullyLoaded()) {
+        isFullyLoaded = true;
+        resolve();
+        return;
+      }
+
+      // Set up a listener for the fully-loaded state
+      tiledImage.addHandler("fully-loaded-change", function (event) {
+        if (event.fullyLoaded === true && !isFullyLoaded) {
+          isFullyLoaded = true;
+          resolve();
+        }
+      });
+    });
+  });
+
+  // This can be awaited to know when the image is fully loaded
+  viewer.fullyLoadedPromise = fullyLoadedPromise;
+
+  viewer.fullyLoadedPromise.then(() => {
+    document.body.classList.add("loaded");
   });
 
   return viewer;
