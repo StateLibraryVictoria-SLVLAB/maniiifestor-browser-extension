@@ -94,7 +94,6 @@ const initialiseViewer = async (tileSource) => {
     tileSources: [tileSource],
     crossOriginPolicy: "Anonymous",
     loadTilesWithAjax: true,
-    preload: true,
     opacity: 1,
     ajaxHeaders: {
       Accept: "image/jpeg",
