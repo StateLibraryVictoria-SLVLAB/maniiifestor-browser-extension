@@ -102,7 +102,6 @@ const initialiseViewer = async (tileSource) => {
     minZoomImageRatio: 0.5,
     springStiffness: 20,
     animationTime: 0.75,
-    placeholderFillStyle: "#cccccc",
   });
 
   viewer.addHandler("open", function () {
