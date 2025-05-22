@@ -219,6 +219,12 @@ h2 {
 #openseadragoncontainer {
   width: 100%;
   height: 100%;
+  opacity: 0;
+  transition: 0.5s opacity ease-in-out;
+}
+
+.loaded #openseadragoncontainer {
+  opacity: 1;
 }
 
 #footer {
