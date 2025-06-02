@@ -255,7 +255,7 @@ const viewer = async () => {
   } catch (error) {
     console.log(`An error occurred: ${error}`);
     const descMetadata = document.getElementById("desc-metadata");
-    descMetadata.innerHTML = `<h2>Oops! something went wrong. try refreshing the tab.</h2>`;
+    descMetadata.innerHTML = `<h2>Oops! Something went wrong. Try refreshing the tab.</h2>`;
   }
 };
 
