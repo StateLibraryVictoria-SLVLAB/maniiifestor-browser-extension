@@ -183,6 +183,22 @@ const fetchRandomImageManifest = async () => {
   return data?.record;
 };
 
+const fetchIIIFManifest = async (iiifManifest) => {
+  const response = await fetchWithTimeout(
+    iiifManifest,
+    {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  )
+
+  const data = await response.json();
+
+  return data
+}
+
 const viewer = async () => {
   try {
     const imageRecord = await fetchRandomImageManifest();
@@ -194,7 +210,14 @@ const viewer = async () => {
     const palette1RGB = imageRecord?.["palette_1"];
     const palette5RGB = imageRecord?.["palette_5"];
 
-    const viewer = await iiifViewer(imageRecord?.manifest);
+    // Call to IIIF services necessary to ensure that the tiles are built and cached
+    const iiifManifestURL = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
+    const iiifManifest = await fetchIIIFManifest(iiifManifestURL);
+
+    const imageManifestURL = iiifManifest?.['sequences']?.[0]?.["canvases"]?.[0]?.["images"]?.[0]?.['@id'];
+    const imageManifest = await fetchIIIFManifest(imageManifestURL);
+
+    const viewer = await iiifViewer(imageManifest?.['resource']?.["service"]?.['@id']);
 
     const descMetadata = document.getElementById("desc-metadata");
 
@@ -232,7 +255,7 @@ const viewer = async () => {
     const linkManifest = document.getElementById("link-manifest");
 
     if (linkManifest) {
-      linkManifest.href = `https://rosetta.slv.vic.gov.au/delivery/iiif/presentation/2.1/${iePid}/manifest`;
+      linkManifest.href = iiifManifestURL;
     }
 
     const osdContainer = document.getElementById("container");
