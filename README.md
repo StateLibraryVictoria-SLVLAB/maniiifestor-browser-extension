@@ -2,9 +2,9 @@
 
 ## Project description
 
-ManIIIFestor is an extension or add-on that can be added to either the Chrome or Firefox web browsers. It adds an image selected at random from the Library's copyright-free image pool. it does this by leveraging the IIIF image API.
+ManIIIFestor is an extension or add-on that can be added to either the Chrome or Firefox web browsers. It adds an image selected at random from the Library's copyright-free image pool. It does this by leveraging the IIIF image API.
 
-The project was originally developed as part of a collaborative hack day between the Library's Collection, Curation and Engagement department and Code Club.
+The project was originally developed as part of a collaborative hack day between the Library's Collection, Curation and Engagement department and Code Club. You can read more about it's development and access associated resources here [https://lab.slv.vic.gov.au/experiments/maniiifestor-browser-extension](https://lab.slv.vic.gov.au/experiments/maniiifestor-browser-extension).
 
 ### Tech stack
 
@@ -55,8 +55,12 @@ If you wish to test the browser-specific features you should follow the instruct
 
 ### Deployment
 
-- Chrome: follow the instructions here [https://developer.chrome.com/docs/webstore/register](https://developer.chrome.com/docs/webstore/register)
-- Firefox: instructions here [https://extensionworkshop.com/documentation/publish/](https://extensionworkshop.com/documentation/publish/)
+The browser extension is distributed via the Chrome webstore and as a Firefox Add-on. In order to contribute to them you will need access to the listings:
+
+- Chrome: you will need to have a Google Developer account, and to be added to the 'SLV LAB' private Google Group [https://groups.google.com/g/slv-lab](https://groups.google.com/g/slv-lab)
+- Firefox: credentials for the Add On developer account are saved in the SLV LAB BeyondTrust secrets vault.
+
+For both Chrome and Firefox updates are made by uploading a zip package containing the contents of this repository. Each update requires an updated and unique `version` in the [manifest.json](manifest.json) file.
 
 ### Commit style
 
